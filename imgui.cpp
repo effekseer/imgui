@@ -4717,6 +4717,7 @@ ImGuiWindow::ImGuiWindow(ImGuiContext* ctx, const char* name) : DrawListInst(NUL
     DrawList->_OwnerName = Name;
     DrawList->_SetDrawListSharedData(&Ctx->DrawListSharedData);
     NavPreferredScoringPosRel[0] = NavPreferredScoringPosRel[1] = ImVec2(FLT_MAX, FLT_MAX);
+    memset(DockTabLabel, 0, sizeof(DockTabLabel));
     IM_PLACEMENT_NEW(&WindowClass) ImGuiWindowClass();
 }
 
@@ -15345,7 +15346,6 @@ static void ImGui::NavUpdate()
         if (activate_down && nav_gamepad_active && IsKeyDown(ImGuiKey_NavGamepadActivate, ImGuiKeyOwner_NoOwner) && (g.NavIdItemFlags & ImGuiItemFlags_Inputable)) // requires ImGuiItemFlags_Inputable to avoid retriggering regular buttons.
             if (GetKeyData(ImGuiKey_NavGamepadActivate)->DownDurationPrev < NAV_ACTIVATE_INPUT_WITH_GAMEPAD_DELAY && GetKeyData(ImGuiKey_NavGamepadActivate)->DownDuration >= NAV_ACTIVATE_INPUT_WITH_GAMEPAD_DELAY)
                 input_pressed_gamepad = true;
-
         if (g.ActiveId == 0 && activate_pressed)
         {
             g.NavActivateId = g.NavId;

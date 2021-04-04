@@ -2475,6 +2475,19 @@ bool ImGui::DragScalar(const char* label, ImGuiDataType data_type, void* p_data,
         }
     }
 
+    // Support single click
+    if (!temp_input_is_active && hovered && g.IO.MouseReleased[0] && g.IO.MouseClickedPos[0].x == g.IO.MousePos.x && g.IO.MouseClickedPos[0].y == g.IO.MousePos.y)
+    {
+        SetActiveID(id, window);
+        SetFocusID(id, window);
+        FocusWindow(window);
+
+        // HACK
+        g.IO.MouseClicked[0] = 1;
+        g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
+        temp_input_is_active = true;
+    }
+
     if (temp_input_is_active)
     {
         // Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set
@@ -8295,7 +8308,7 @@ ImGuiTabItem* ImGui::TabBarGetCurrentTab(ImGuiTabBar* tab_bar)
 const char* ImGui::TabBarGetTabName(ImGuiTabBar* tab_bar, ImGuiTabItem* tab)
 {
     if (tab->Window)
-        return tab->Window->Name;
+        return tab->Window->DockTabLabel;
     if (tab->NameOffset == -1)
         return "N/A";
     IM_ASSERT(tab->NameOffset < tab_bar->TabsNames.Buf.Size);

@@ -2374,6 +2374,19 @@ bool ImGui::DragScalar(const char* label, ImGuiDataType data_type, void* p_data,
         }
     }
 
+    // Support single click
+    if (!temp_input_is_active && hovered && g.IO.MouseReleased[0] && g.IO.MouseClickedPos[0].x == g.IO.MousePos.x && g.IO.MouseClickedPos[0].y == g.IO.MousePos.y)
+    {
+        SetActiveID(id, window);
+        SetFocusID(id, window);
+        FocusWindow(window);
+
+        // HACK
+        g.IO.MouseClicked[0] = 1;
+        g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
+        temp_input_is_active = true;
+    }
+
     if (temp_input_is_active)
     {
         // Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set
@@ -8346,7 +8359,7 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
     const ImGuiID close_button_id = p_open ? GetIDWithSeed("#CLOSE", NULL, docked_window ? docked_window->ID : id) : 0;
     bool just_closed;
     bool text_clipped;
-    TabItemLabelAndCloseButton(display_draw_list, bb, flags, tab_bar->FramePadding, label, id, close_button_id, tab_contents_visible, &just_closed, &text_clipped);
+    TabItemLabelAndCloseButton(display_draw_list, bb, flags, tab_bar->FramePadding, tab_bar->GetTabName(tab), id, close_button_id, tab_contents_visible, &just_closed, &text_clipped);
     if (just_closed && p_open != NULL)
     {
         *p_open = false;

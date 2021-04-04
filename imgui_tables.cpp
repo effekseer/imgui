@@ -3822,7 +3822,13 @@ void ImGui::NextColumn()
     SetWindowClipRectBeforeSetChannel(window, column->ClipRect);
     columns->Splitter.SetCurrentChannel(window->DrawList, columns->Current + 1);
 
-    const float column_padding = g.Style.ItemSpacing.x;
+    float column_padding = g.Style.ItemSpacing.x;
+
+    if (columns->Current + 1 == columns->Count)
+    {
+        column_padding /= 2;
+    }
+
     columns->LineMaxY = ImMax(columns->LineMaxY, window->DC.CursorPos.y);
     if (columns->Current > 0)
     {

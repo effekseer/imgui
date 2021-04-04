@@ -2765,6 +2765,19 @@ bool ImGui::DragScalar(const char* label, ImGuiDataType data_type, void* p_data,
         }
     }
 
+    // Support single click
+    if (!temp_input_is_active && hovered && g.IO.MouseReleased[0] && g.IO.MouseClickedPos[0].x == g.IO.MousePos.x && g.IO.MouseClickedPos[0].y == g.IO.MousePos.y)
+    {
+        SetActiveID(id, window);
+        SetFocusID(id, window);
+        FocusWindow(window);
+
+        // HACK
+        g.IO.MouseClicked[0] = 1;
+        g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
+        temp_input_is_active = true;
+    }
+
     if (temp_input_is_active)
     {
         const bool clamp_enabled = TempInputIsClampEnabled(flags, data_type, p_min, p_max);
@@ -9898,8 +9911,9 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
         // Additionally, when using TabBarAddTab() to manipulate tab bar order we occasionally insert new tabs that don't have a width yet,
         // and we cannot wait for the next BeginTabItem() call. We cannot compute this width within TabBarAddTab() because font size depends on the active window.
         const char* tab_name = TabBarGetTabName(tab_bar, tab);
+        const char* tab_display_name = (tab->Window && tab->Window->DockTabDisplayLabel[0] != '\0') ? tab->Window->DockTabDisplayLabel : tab_name;
         const bool has_close_button_or_unsaved_marker = (tab->Flags & ImGuiTabItemFlags_NoCloseButton) == 0 || (tab->Flags & ImGuiTabItemFlags_UnsavedDocument);
-        tab->ContentWidth = (tab->RequestedWidth >= 0.0f) ? tab->RequestedWidth : TabItemCalcSize(tab_name, has_close_button_or_unsaved_marker).x;
+        tab->ContentWidth = (tab->RequestedWidth >= 0.0f) ? tab->RequestedWidth : TabItemCalcSize(tab_display_name, has_close_button_or_unsaved_marker).x;
         if ((tab->Flags & ImGuiTabItemFlags_Button) == 0)
             tab->ContentWidth = ImMax(tab->ContentWidth, g.Style.TabMinWidthBase);
 
@@ -10122,7 +10136,7 @@ ImGuiTabItem* ImGui::TabBarGetCurrentTab(ImGuiTabBar* tab_bar)
 const char* ImGui::TabBarGetTabName(ImGuiTabBar* tab_bar, ImGuiTabItem* tab)
 {
     if (tab->Window)
-        return tab->Window->Name;
+        return tab->Window->DockTabLabel;
     if (tab->NameOffset == -1)
         return "N/A";
     IM_ASSERT(tab->NameOffset < tab_bar->TabsNames.Buf.Size);
@@ -10535,7 +10549,8 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
     tab_bar->LastTabItemIdx = (ImS16)tab_bar->Tabs.index_from_ptr(tab);
 
     // Calculate tab contents size
-    ImVec2 size = TabItemCalcSize(label, (p_open != NULL) || (flags & ImGuiTabItemFlags_UnsavedDocument));
+    const char* display_label = (docked_window && docked_window->DockTabDisplayLabel[0] != '\0') ? docked_window->DockTabDisplayLabel : label;
+    ImVec2 size = TabItemCalcSize(display_label, (p_open != NULL) || (flags & ImGuiTabItemFlags_UnsavedDocument));
     tab->RequestedWidth = -1.0f;
     if (g.NextItemData.HasFlags & ImGuiNextItemDataFlags_HasWidth)
         size.x = tab->RequestedWidth = g.NextItemData.Width;
@@ -10761,7 +10776,8 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
         const ImGuiID close_button_id = p_open ? GetIDWithSeed("#CLOSE", NULL, docked_window ? docked_window->ID : id) : 0;
         bool just_closed;
         bool text_clipped;
-        TabItemLabelAndCloseButton(display_draw_list, bb, tab_just_unsaved ? (flags & ~ImGuiTabItemFlags_UnsavedDocument) : flags, tab_bar->FramePadding, label, id, close_button_id, tab_contents_visible, &just_closed, &text_clipped);
+        const char* tab_display_label = (tab->Window && tab->Window->DockTabDisplayLabel[0] != '\0') ? tab->Window->DockTabDisplayLabel : label;
+        TabItemLabelAndCloseButton(display_draw_list, bb, tab_just_unsaved ? (flags & ~ImGuiTabItemFlags_UnsavedDocument) : flags, tab_bar->FramePadding, tab_display_label, id, close_button_id, tab_contents_visible, &just_closed, &text_clipped);
         if (just_closed && p_open != NULL)
         {
             *p_open = false;
@@ -10778,9 +10794,17 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
         // (We test IsItemHovered() to discard e.g. when another item is active or drag and drop over the tab bar, which g.HoveredId ignores)
         // FIXME: This is a mess.
         // FIXME: We may want disabled tab to still display the tooltip?
-        if (text_clipped && g.HoveredId == id && !held)
+        const char* tooltip_label = label;
+        bool show_tooltip = text_clipped;
+        if (docked_window && docked_window->DockMenuLabel[0] != '\0')
+        {
+            tooltip_label = docked_window->DockMenuLabel;
+            if (docked_window->DockTabDisplayLabel[0] != '\0')
+                show_tooltip = true;
+        }
+        if (show_tooltip && g.HoveredId == id && !held)
             if (!(tab_bar->Flags & ImGuiTabBarFlags_NoTooltip) && !(tab->Flags & ImGuiTabItemFlags_NoTooltip))
-                SetItemTooltip("%.*s", (int)(FindRenderedTextEnd(label) - label), label);
+                SetItemTooltip("%.*s", (int)(FindRenderedTextEnd(tooltip_label) - tooltip_label), tooltip_label);
     }
 
     // Restore main window position so user can draw there
@@ -10868,6 +10892,7 @@ void ImGui::TabItemLabelAndCloseButton(ImDrawList* draw_list, const ImRect& bb, 
 {
     ImGuiContext& g = *GImGui;
     ImVec2 label_size = CalcTextSize(label, NULL, true);
+    const char* label_end = FindRenderedTextEnd(label);
 
     if (out_just_closed)
         *out_just_closed = false;
@@ -10952,7 +10977,13 @@ void ImGui::TabItemLabelAndCloseButton(ImDrawList* draw_list, const ImRect& bb, 
         }
     }
     LogSetNextTextDecoration("/", "\\");
-    RenderTextEllipsis(draw_list, text_ellipsis_clip_bb.Min, text_ellipsis_clip_bb.Max, ellipsis_max_x, label, NULL, &label_size);
+    unsigned int label_codepoint = 0;
+    const int label_codepoint_bytes = ImTextCharFromUtf8(&label_codepoint, label, label_end);
+    const bool is_single_rendered_codepoint = label_codepoint_bytes > 0 && label + label_codepoint_bytes == label_end;
+    if (is_single_rendered_codepoint)
+        RenderTextClippedEx(draw_list, text_ellipsis_clip_bb.Min, text_ellipsis_clip_bb.Max, label, label_end, &label_size, ImVec2(0.0f, 0.0f));
+    else
+        RenderTextEllipsis(draw_list, text_ellipsis_clip_bb.Min, text_ellipsis_clip_bb.Max, ellipsis_max_x, label, label_end, &label_size);
 
 #if 0
     if (!is_contents_visible)

@@ -8359,7 +8359,7 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
     const ImGuiID close_button_id = p_open ? GetIDWithSeed("#CLOSE", NULL, docked_window ? docked_window->ID : id) : 0;
     bool just_closed;
     bool text_clipped;
-    TabItemLabelAndCloseButton(display_draw_list, bb, flags, tab_bar->FramePadding, tab_bar->GetTabName(tab), id, close_button_id, tab_contents_visible, &just_closed, &text_clipped);
+    TabItemLabelAndCloseButton(display_draw_list, bb, flags, tab_bar->FramePadding, label, id, close_button_id, tab_contents_visible, &just_closed, &text_clipped);
     if (just_closed && p_open != NULL)
     {
         *p_open = false;

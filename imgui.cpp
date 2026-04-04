@@ -4718,6 +4718,7 @@ ImGuiWindow::ImGuiWindow(ImGuiContext* ctx, const char* name) : DrawListInst(NUL
     DrawList->_SetDrawListSharedData(&Ctx->DrawListSharedData);
     NavPreferredScoringPosRel[0] = NavPreferredScoringPosRel[1] = ImVec2(FLT_MAX, FLT_MAX);
     memset(DockTabLabel, 0, sizeof(DockTabLabel));
+    memset(DockTabDisplayLabel, 0, sizeof(DockTabDisplayLabel));
     memset(DockMenuLabel, 0, sizeof(DockMenuLabel));
     IM_PLACEMENT_NEW(&WindowClass) ImGuiWindowClass();
 }

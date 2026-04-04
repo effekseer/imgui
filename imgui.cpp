@@ -4718,6 +4718,7 @@ ImGuiWindow::ImGuiWindow(ImGuiContext* ctx, const char* name) : DrawListInst(NUL
     DrawList->_SetDrawListSharedData(&Ctx->DrawListSharedData);
     NavPreferredScoringPosRel[0] = NavPreferredScoringPosRel[1] = ImVec2(FLT_MAX, FLT_MAX);
     memset(DockTabLabel, 0, sizeof(DockTabLabel));
+    memset(DockMenuLabel, 0, sizeof(DockMenuLabel));
     IM_PLACEMENT_NEW(&WindowClass) ImGuiWindowClass();
 }
 
@@ -20176,7 +20177,10 @@ void ImGui::DockNodeWindowMenuHandler_Default(ImGuiContext* ctx, ImGuiDockNode* 
             ImGuiTabItem* tab = &tab_bar->Tabs[tab_n];
             if (tab->Flags & ImGuiTabItemFlags_Button)
                 continue;
-            if (Selectable(TabBarGetTabName(tab_bar, tab), tab->ID == tab_bar->SelectedTabId))
+            const char* tab_name = TabBarGetTabName(tab_bar, tab);
+            if (tab->Window && tab->Window->DockMenuLabel[0] != '\0')
+                tab_name = tab->Window->DockMenuLabel;
+            if (Selectable(tab_name, tab->ID == tab_bar->SelectedTabId))
                 TabBarQueueFocus(tab_bar, tab);
             SameLine();
             Text("   ");

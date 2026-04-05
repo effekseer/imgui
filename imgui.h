@@ -4360,32 +4360,6 @@ namespace ImGui
     IMGUI_API ImVec2    GetWindowContentRegionMin();                            // Content boundaries min for the window (roughly (0,0)-Scroll), in window-local coordinates. You should never need this. Always use GetCursorScreenPos() and GetContentRegionAvail()!
     IMGUI_API ImVec2    GetWindowContentRegionMax();                            // Content boundaries max for the window (roughly (0,0)+Size-Scroll), in window-local coordinates. You should never need this. Always use GetCursorScreenPos() and GetContentRegionAvail()!
 
-    // Some of the older obsolete names along with their replacement (commented out so they are not reported in IDE)
-#ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-#ifndef ImGuiTreeNodeFlags_AllowItemOverlap
-#define ImGuiTreeNodeFlags_AllowItemOverlap ImGuiTreeNodeFlags_AllowOverlap
-#endif
-#ifndef ImGuiSelectableFlags_AllowItemOverlap
-#define ImGuiSelectableFlags_AllowItemOverlap ImGuiSelectableFlags_AllowOverlap
-#endif
-    inline bool         BeginChildFrame(ImGuiID id, const ImVec2& size, ImGuiWindowFlags flags = 0) { return BeginChild(id, size, ImGuiChildFlags_FrameStyle, flags); }
-    inline void         EndChildFrame()                                                             { EndChild(); }
-    inline void         ShowStackToolWindow(bool* p_open = NULL)                                    { ShowIDStackToolWindow(p_open); }
-    static inline void  CaptureKeyboardFromApp(bool want_capture_keyboard = true)                   { SetNextFrameWantCaptureKeyboard(want_capture_keyboard); }
-    static inline void  CaptureMouseFromApp(bool want_capture_mouse = true)                         { SetNextFrameWantCaptureMouse(want_capture_mouse); }
-    static inline ImGuiKey GetKeyIndex(ImGuiKey key)                                                { IM_ASSERT(key >= ImGuiKey_NamedKey_BEGIN && key < ImGuiKey_NamedKey_END); return key; }
-    static inline bool  ImageButton(ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), int frame_padding = -1, const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1))
-    {
-        PushID(reinterpret_cast<const void*>(static_cast<size_t>(user_texture_id)));
-        if (frame_padding >= 0)
-            PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2((float)frame_padding, (float)frame_padding));
-        const bool ret = ImageButton("##image", ImTextureRef(user_texture_id), image_size, uv0, uv1, bg_col, tint_col);
-        if (frame_padding >= 0)
-            PopStyleVar();
-        PopID();
-        return ret;
-    }
-#endif
     // OBSOLETED in 1.90.0 (from September 2023)
     //IMGUI_API bool      Combo(const char* label, int* current_item, bool (*old_callback)(void* user_data, int idx, const char** out_text), void* user_data, int items_count, int popup_max_height_in_items = -1); // Getter signature changed. See 2023/09/15 and 2026/02/27 commits.
     //IMGUI_API bool      ListBox(const char* label, int* current_item, bool (*old_callback)(void* user_data, int idx, const char** out_text), void* user_data, int items_count, int height_in_items = -1);         // Getter signature changed. See 2023/09/15 and 2026/02/27 commits.

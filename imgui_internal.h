@@ -165,6 +165,8 @@ struct ImGuiGroupData;              // Stacked storage data for BeginGroup()/End
 struct ImGuiInputTextState;         // Internal state of the currently focused/edited text input box
 struct ImGuiInputTextDeactivateData;// Short term storage to backup text of a deactivating InputText() while another is stealing active id
 struct ImGuiLastItemData;           // Status storage for last submitted items
+struct ImGuiLayout;                 // Storage for stack-layout state (Effekseer fork)
+struct ImGuiLayoutItem;             // Storage for one stack-layout item (Effekseer fork)
 struct ImGuiLocEntry;               // A localization entry.
 struct ImGuiMenuColumns;            // Simple column measurement, currently used for MenuItem() only
 struct ImGuiMultiSelectState;       // Multi-selection persistent state (for focused selection).
@@ -2543,6 +2545,8 @@ struct ImGuiContext
     ImGuiID                 WithinEndChildID;                   // Set within EndChild()
     ImGuiID                 WithinEndPopupID;                   // Set within EndPopup()
     void*                   TestEngine;                         // Test engine user data
+    ImGuiItemCaptureCallback ItemCaptureCallback;               // Effekseer semantic UI capture hook
+    void*                   ItemCaptureUserData;
 
     // Inputs
     ImVector<ImGuiInputEvent> InputEventsQueue;                 // Input events which will be trickled/written into IO structure.

@@ -4258,6 +4258,8 @@ ImGuiContext::ImGuiContext(ImFontAtlas* shared_font_atlas)
         IO.Fonts->OwnerContext = this;
     WithinEndChildID = 0;
     TestEngine = NULL;
+    ItemCaptureCallback = NULL;
+    ItemCaptureUserData = NULL;
 
     InputEventsNextMouseSource = ImGuiMouseSource_Mouse;
     InputEventsNextEventId = 1;
@@ -12015,6 +12017,16 @@ bool ImGui::ItemAdd(const ImRect& bb, ImGuiID id, const ImRect* nav_bb_arg, ImGu
     // (this is an inline copy of IsClippedEx() so we can reuse the is_rect_visible value, otherwise we'd do 'if (IsClippedEx(bb, id)) return false')
     // g.NavActivateId is not necessarily == g.NavId, in the case of remote activation (e.g. shortcuts)
     const bool is_rect_visible = bb.Overlaps(window->ClipRect);
+    if (g.ItemCaptureCallback != NULL && id != 0)
+    {
+        ImGuiItemCaptureData capture_data;
+        capture_data.ID = id;
+        capture_data.RectMin = bb.Min;
+        capture_data.RectMax = bb.Max;
+        capture_data.StatusFlags = g.LastItemData.StatusFlags | (is_rect_visible ? ImGuiItemStatusFlags_Visible : 0);
+        capture_data.Visible = is_rect_visible;
+        g.ItemCaptureCallback(&capture_data, g.ItemCaptureUserData);
+    }
     if (!is_rect_visible)
         if (id == 0 || (id != g.ActiveId && id != g.ActiveIdPreviousFrame && id != g.NavId && id != g.NavActivateId))
             if (!g.ItemUnclipByLog)
@@ -12063,6 +12075,13 @@ bool ImGui::ItemAdd(const ImRect& bb, ImGuiID id, const ImRect* nav_bb_arg, ImGu
     return true;
 }
 IM_MSVC_RUNTIME_CHECKS_RESTORE
+
+void ImGui::SetItemCaptureCallback(ImGuiItemCaptureCallback callback, void* user_data)
+{
+    ImGuiContext& g = *GImGui;
+    g.ItemCaptureCallback = callback;
+    g.ItemCaptureUserData = user_data;
+}
 
 //-----------------------------------------------------------------------------
 // [SECTION] LAYOUT

@@ -310,6 +310,19 @@ struct ImVec2
 #endif
 };
 
+// Effekseer extension: stable, public item-capture data for semantic UI tooling.
+// The callback is invoked during ItemAdd(). Data is valid only for the duration
+// of the callback and contains no pointer to Dear ImGui internal structures.
+struct ImGuiItemCaptureData
+{
+    ImGuiID     ID;
+    ImVec2      RectMin;
+    ImVec2      RectMax;
+    int         StatusFlags;
+    bool        Visible;
+};
+typedef void (*ImGuiItemCaptureCallback)(const ImGuiItemCaptureData* data, void* user_data);
+
 // ImVec4: 4D vector used to store clipping rectangles, colors etc. [Compile-time configurable type]
 struct ImVec4
 {
@@ -401,6 +414,7 @@ namespace ImGui
     IMGUI_API void          DestroyContext(ImGuiContext* ctx = NULL);   // NULL = destroy current context
     IMGUI_API ImGuiContext* GetCurrentContext();
     IMGUI_API void          SetCurrentContext(ImGuiContext* ctx);
+    IMGUI_API void          SetItemCaptureCallback(ImGuiItemCaptureCallback callback, void* user_data = NULL);
 
     // Main
     IMGUI_API ImGuiIO&      GetIO();                                    // access the ImGuiIO structure (mouse/keyboard/gamepad inputs, time, various configuration options/flags)
